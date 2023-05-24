@@ -7,22 +7,36 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as pp
 
+dict = {0:"red dwarf", 1:"brown dwarf", 2:"white dwarf", 3:"main seq", 4:"supergiant", 5:"hypergiant"}
+
 path = './Stars.csv'
 ds = pd.read_csv(path)
 
-x = ds['A_M']
-y = ds['Type']
+def create_model():
+    model = tf.keras.Sequential([
+    tf.keras.layers.Dense(1024, activation='relu'),
+    tf.keras.layers.Dense(512, activation='relu'),
+    tf.keras.layers.Dense(256, activation='relu'),
+    tf.keras.layers.Dense(16, activation='relu'),
+    tf.keras.layers.Dense(6, activation='sigmoid')
+])
+    model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001),
+                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                  metrics=['accuracy'],
+     )
+    return model
 
-x_train, x_test, y_train, y_test = x[:220],x[220:],y[:220],y[220:]
 
 model = create_model()
-model = model.load_weights('weights.h5')
 
-predictions = model.predict(x_test[:5])
+model.load_weights('weights')
 
-# print predictions
-print(np.argmax(predictions, axis=1)) # [7, 2, 1, 0, 4]
+temperature = float(input("temp (k) >> "))
+AM = float(input("AM >> "))
+A_M = np.array([[AM]])
+predictions = model.predict(A_M)
 
-# validate
-print(y_test[:5]) # [7, 2, 1, 0, 4]
-
+print('preds: ')
+print(np.argmax(predictions, axis=1))
+for i in np.argmax(predictions, axis=1):
+    print(dict[i])

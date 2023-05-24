@@ -17,21 +17,27 @@ y = ds['Type']
 x_train, x_test, y_train, y_test = x[:220],x[220:],y[:220],y[220:]
 
 model = tf.keras.Sequential([
-    tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dense(16, activation='leaky_relu'),
+    tf.keras.layers.Dense(1024, activation='relu'),
+    tf.keras.layers.Dense(512, activation='relu'),
+    tf.keras.layers.Dense(256, activation='relu'),
+    tf.keras.layers.Dense(16, activation='relu'),
     tf.keras.layers.Dense(6, activation='sigmoid')
 ])
-model.compile(optimizer=tf.keras.optimizers.Adam(lr=0.01),
+model.compile(optimizer=tf.keras.optimizers.RMSprop(lr=0.001),
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'],
              )
               
-model.fit(x_train, y_train, epochs=100, validation_data = (x_test, y_test))
+history = model.fit(x_train, y_train, epochs=130, validation_data = (x_test, y_test))
 
-model.save_weights('weights.h5')
+score = model.evaluate(x_test, y_test, verbose=1)
+print("SCORE")
+print(score)
+
+model.save_weights('weights')
 model.save('./model')
 
-model.load_weights('weights.h5')
+model.load_weights('weights')
 
 predictions = model.predict(x_test[:20])
 
@@ -42,3 +48,20 @@ print(np.argmax(predictions, axis=1))
 # validate
 print('actual data: ')
 print(y_test[:20])
+print(model.summary())
+
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['Train', 'Validation'], loc='upper left')
+plt.show()
+# summarize history for loss
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['Train', 'Validation'], loc='upper left')
+plt.show()
